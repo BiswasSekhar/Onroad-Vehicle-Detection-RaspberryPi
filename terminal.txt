@@ -1,0 +1,6 @@
+pip install opencv-python torch torchvision numpy
+
+pip install yolov5
+
+https://prod.liveshare.vsengsaas.visualstudio.com/join?7EF9A15C1E1F5174F399320422AB52C17C98
+https://prod.liveshare.vsengsaas.visualstudio.com/join?7EF9A15C1E1F5174F399320422AB52C17C98
