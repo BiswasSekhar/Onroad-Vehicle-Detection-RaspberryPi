@@ -59,14 +59,16 @@ You can customize the detection parameters by editing the `config.py` file:
 ## OLED Display
 
 The OLED display shows:
-- Total number of vehicles detected
-- Current FPS (frames per second)
+- Total number of vehicles detected in large text
 - Count of each type of vehicle detected (car, bus, truck, etc.)
+- Vehicle types are sorted by count with the most common types shown first
+- Only the top 3 vehicle types are shown to ensure readability
 
 If you're having issues with the OLED display:
 - Check the I2C address in config.py (common values are 0x3C or 0x3D)
 - Ensure I2C is enabled on your Raspberry Pi (`sudo raspi-config`)
 - Verify the connections are secure
+- Run the test script to check if the display is working: `python3 test_oled.py`
 
 ## Performance Tips
 

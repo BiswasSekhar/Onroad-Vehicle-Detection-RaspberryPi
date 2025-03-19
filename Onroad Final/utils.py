@@ -52,33 +52,53 @@ def update_oled_display(vehicle_count, vehicle_types=None, fps=0):
         image = Image.new("1", (oled_display.width, oled_display.height))
         draw = ImageDraw.Draw(image)
         
-        # Load a font
+        # Load fonts - try to load larger fonts for better visibility
         try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 10)
-            small_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 8)
+            large_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
+            medium_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
         except:
-            font = ImageFont.load_default()
-            small_font = ImageFont.load_default()
+            # Fall back to default font if custom font fails
+            large_font = ImageFont.load_default()
+            medium_font = ImageFont.load_default()
         
-        # Draw the vehicle count
-        draw.text((0, 0), f"Vehicles: {vehicle_count}", font=font, fill=255)
+        # Draw total vehicles count at the top in large font
+        total_text = f"Total: {vehicle_count}"
+        # Center the text
+        total_w = draw.textsize(total_text, font=large_font)[0]
+        draw.text(((OLED_WIDTH - total_w) // 2, 0), total_text, font=large_font, fill=255)
         
-        # Draw the FPS
-        draw.text((0, 12), f"FPS: {fps:.1f}", font=font, fill=255)
-        
-        # Draw detected vehicle types if available
+        # Draw each vehicle type with count
         if vehicle_types and len(vehicle_types) > 0:
-            y_position = 24
-            draw.text((0, y_position), "Detected:", font=small_font, fill=255)
-            y_position += 10
+            y_position = 18  # Start position after total count
             
-            # Show up to 3 detected vehicle types
-            for i, (vehicle_type, count) in enumerate(vehicle_types.items()):
-                if i >= 3:  # Limit to prevent overflow
-                    break
-                draw.text((0, y_position), f"- {vehicle_type}: {count}", font=small_font, fill=255)
-                y_position += 10
+            # Sort vehicle types by count (highest first)
+            sorted_vehicles = sorted(vehicle_types.items(), key=lambda x: x[1], reverse=True)
+            
+            # Display each vehicle type with count
+            for vehicle_type, count in sorted_vehicles:
+                if count > 0:  # Only show types with at least one detection
+                    # Capitalize first letter for better readability
+                    display_name = vehicle_type[0].upper() + vehicle_type[1:]
+                    vehicle_text = f"{display_name}: {count}"
+                    
+                    # Center each vehicle type text
+                    text_w = draw.textsize(vehicle_text, font=medium_font)[0]
+                    draw.text(((OLED_WIDTH - text_w) // 2, y_position), 
+                             vehicle_text, font=medium_font, fill=255)
+                    y_position += 15  # Spacing between lines
+                    
+                    # Only show top 3 vehicle types to ensure they fit on screen
+                    if y_position > 55:
+                        break
         
+        # If no vehicles detected, show a message
+        if vehicle_count == 0:
+            no_vehicle_text = "No vehicles"
+            # Center the text
+            text_w = draw.textsize(no_vehicle_text, font=medium_font)[0]
+            draw.text(((OLED_WIDTH - text_w) // 2, 30), 
+                     no_vehicle_text, font=medium_font, fill=255)
+            
         # Display the image
         oled_display.image(image)
         oled_display.show()

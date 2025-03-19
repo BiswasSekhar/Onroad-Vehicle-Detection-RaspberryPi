@@ -93,9 +93,9 @@ def main():
             cv2.putText(processed_frame, f"FPS: {fps:.1f}", (10, 60), 
                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             
-            # Update OLED display
+            # Update OLED display - pass only vehicle count and types
             if ENABLE_OLED:
-                update_oled_display(vehicle_count, vehicle_types, fps)
+                update_oled_display(vehicle_count, vehicle_types)
             
             # Log vehicle data
             if LOG_DETECTIONS and data_logger:
