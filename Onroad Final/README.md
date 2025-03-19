@@ -77,6 +77,33 @@ If you're having issues with the OLED display:
 - Increase CONFIDENCE_THRESHOLD for fewer but more reliable detections
 - For better performance, consider overclocking your Raspberry Pi
 
+## Performance Optimization
+
+To fix frame drops and improve performance:
+
+1. Run the performance test to find optimal settings for your Pi:
+```
+python3 performance_test.py
+```
+
+2. Update your configuration based on the recommendations:
+   - Adjust `BLOB_SIZE` for inference (smaller = faster, less accurate)
+   - Set `DETECTION_INTERVAL` to process every Nth frame (higher = faster)
+   - Set `USE_THREADING` to true for parallel processing
+   - Set `ENABLE_GPU` if your Pi supports OpenCL
+   - Adjust `OLED_UPDATE_INTERVAL` to reduce display overhead
+
+3. For maximum performance:
+   - Disable camera preview with `ENABLE_PREVIEW = False`
+   - Use a smaller camera resolution (e.g., 320x240)
+   - Close other applications running on the Pi
+   - Consider overclocking your Raspberry Pi
+
+4. Other optimizations:
+   - Mount your SD card in read-only mode to prevent corruption
+   - Use a properly sized power supply (at least 2.5A)
+   - Add a heatsink or fan to prevent thermal throttling
+
 ## Troubleshooting
 
 - If the camera isn't detected, ensure it's properly connected and enabled

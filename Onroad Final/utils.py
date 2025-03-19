@@ -2,11 +2,20 @@ import cv2
 import numpy as np
 import time
 import logging
-from config import VEHICLE_CLASSES, LOG_DETECTIONS, LOG_PATH
+from config import (
+    VEHICLE_CLASSES, 
+    LOG_DETECTIONS, 
+    LOG_PATH, 
+    ENABLE_OLED, 
+    OLED_WIDTH, 
+    OLED_HEIGHT, 
+    OLED_I2C_ADDRESS, 
+    OLED_I2C_BUS,
+    OLED_UPDATE_INTERVAL  # Add this import
+)
 import board
 import adafruit_ssd1306
 from PIL import Image, ImageDraw, ImageFont
-from config import ENABLE_OLED, OLED_WIDTH, OLED_HEIGHT, OLED_I2C_ADDRESS, OLED_I2C_BUS
 
 if LOG_DETECTIONS:
     logging.basicConfig(filename=LOG_PATH, level=logging.INFO, 
@@ -40,12 +49,26 @@ def initialize_oled():
         print(f"Error initializing OLED display: {e}")
         return None
 
-def update_oled_display(vehicle_count, vehicle_types=None, fps=0):
+# Track previous vehicle stats to avoid unnecessary OLED updates
+_previous_vehicle_count = -1
+_previous_vehicle_types = {}
+_frame_count = 0
+
+def update_oled_display(vehicle_count, vehicle_types=None, fps=0, force_update=False):
     """Update the OLED display with detection results"""
-    global oled_display
+    global oled_display, _previous_vehicle_count, _previous_vehicle_types, _frame_count
     
     if not ENABLE_OLED or oled_display is None:
         return
+    
+    # Check if we need to update the display
+    _frame_count += 1
+    if not force_update:
+        # Only update every OLED_UPDATE_INTERVAL frames OR when vehicle counts change
+        if (_frame_count % OLED_UPDATE_INTERVAL != 0 and 
+            vehicle_count == _previous_vehicle_count and 
+            vehicle_types == _previous_vehicle_types):
+            return
     
     try:
         # Create blank image for drawing
@@ -54,8 +77,8 @@ def update_oled_display(vehicle_count, vehicle_types=None, fps=0):
         
         # Load fonts - try to load larger fonts for better visibility
         try:
-            large_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
-            medium_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+            large_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
+            medium_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
         except:
             # Fall back to default font if custom font fails
             large_font = ImageFont.load_default()
@@ -64,12 +87,19 @@ def update_oled_display(vehicle_count, vehicle_types=None, fps=0):
         # Draw total vehicles count at the top in large font
         total_text = f"Total: {vehicle_count}"
         # Center the text
-        total_w = draw.textsize(total_text, font=large_font)[0]
+        try:
+            # For newer PIL versions
+            total_bbox = draw.textbbox((0, 0), total_text, font=large_font)
+            total_w = total_bbox[2] - total_bbox[0]
+        except AttributeError:
+            # For older PIL versions
+            total_w = draw.textsize(total_text, font=large_font)[0]
+        
         draw.text(((OLED_WIDTH - total_w) // 2, 0), total_text, font=large_font, fill=255)
         
         # Draw each vehicle type with count
         if vehicle_types and len(vehicle_types) > 0:
-            y_position = 18  # Start position after total count
+            y_position = 20  # Start position after total count
             
             # Sort vehicle types by count (highest first)
             sorted_vehicles = sorted(vehicle_types.items(), key=lambda x: x[1], reverse=True)
@@ -82,10 +112,17 @@ def update_oled_display(vehicle_count, vehicle_types=None, fps=0):
                     vehicle_text = f"{display_name}: {count}"
                     
                     # Center each vehicle type text
-                    text_w = draw.textsize(vehicle_text, font=medium_font)[0]
+                    try:
+                        # For newer PIL versions
+                        text_bbox = draw.textbbox((0, 0), vehicle_text, font=medium_font)
+                        text_w = text_bbox[2] - text_bbox[0]
+                    except AttributeError:
+                        # For older PIL versions
+                        text_w = draw.textsize(vehicle_text, font=medium_font)[0]
+                    
                     draw.text(((OLED_WIDTH - text_w) // 2, y_position), 
                              vehicle_text, font=medium_font, fill=255)
-                    y_position += 15  # Spacing between lines
+                    y_position += 16  # Spacing between lines
                     
                     # Only show top 3 vehicle types to ensure they fit on screen
                     if y_position > 55:
@@ -95,13 +132,25 @@ def update_oled_display(vehicle_count, vehicle_types=None, fps=0):
         if vehicle_count == 0:
             no_vehicle_text = "No vehicles"
             # Center the text
-            text_w = draw.textsize(no_vehicle_text, font=medium_font)[0]
+            try:
+                # For newer PIL versions
+                text_bbox = draw.textbbox((0, 0), no_vehicle_text, font=medium_font)
+                text_w = text_bbox[2] - text_bbox[0]
+            except AttributeError:
+                # For older PIL versions
+                text_w = draw.textsize(no_vehicle_text, font=medium_font)[0]
+            
             draw.text(((OLED_WIDTH - text_w) // 2, 30), 
                      no_vehicle_text, font=medium_font, fill=255)
             
         # Display the image
         oled_display.image(image)
         oled_display.show()
+        
+        # Update previous state
+        _previous_vehicle_count = vehicle_count
+        _previous_vehicle_types = vehicle_types.copy() if vehicle_types else {}
+        
     except Exception as e:
         print(f"Error updating OLED display: {e}")
 

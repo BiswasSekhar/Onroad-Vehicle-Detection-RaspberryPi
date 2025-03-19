@@ -28,6 +28,7 @@ OLED_WIDTH = 128
 OLED_HEIGHT = 64
 OLED_I2C_ADDRESS = 0x3C  # Common address for SSD1306 displays (might be 0x3D for some)
 OLED_I2C_BUS = 1  # Default I2C bus on Raspberry Pi
+OLED_UPDATE_INTERVAL = 5  # Update OLED every N frames to reduce overhead
 
 # Logging
 LOG_DETECTIONS = True
@@ -35,6 +36,9 @@ LOG_PATH = "/home/pi/Project/Onroad Final/logs/detections.log"
 
 # Performance settings
 USE_THREADING = True  # Use threading for better performance
-DETECTION_INTERVAL = 0  # 0 for every frame, higher for skipping frames
+DETECTION_INTERVAL = 2  # Process every Nth frame (0 or 1 for every frame)
 ENABLE_GPU = False  # Set to True if your Pi has GPU support
 OPTIMIZE_NETWORK = True  # Apply network optimization techniques
+OLED_UPDATE_INTERVAL = 5  # Update OLED every N frames to reduce overhead
+BLOB_SIZE = 320  # Input size for YOLO (smaller = faster, less accurate; options: 320, 416, 512)
+MAX_QUEUE_SIZE = 5  # Maximum size of frame queue for threading

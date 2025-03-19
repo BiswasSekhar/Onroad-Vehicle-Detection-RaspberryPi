@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cd /home/pi/Project/Onroad Final
+# Change to correct directory - fix cd command
+cd "/home/pi/Project/Onroad Final"
 
 # Check for required dependencies
 if ! pip3 list | grep -q adafruit-circuitpython-ssd1306; then
