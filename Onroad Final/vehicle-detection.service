@@ -1,0 +1,17 @@
+[Unit]
+Description=Vehicle Detection System
+After=network.target
+After=multi-user.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/Project/Onroad Final
+ExecStart=/bin/bash "/home/pi/Project/Onroad Final/service_wrapper.sh"
+Restart=on-failure
+RestartSec=10s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

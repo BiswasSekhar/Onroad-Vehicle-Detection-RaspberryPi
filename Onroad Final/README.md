@@ -104,6 +104,58 @@ python3 performance_test.py
    - Use a properly sized power supply (at least 2.5A)
    - Add a heatsink or fan to prevent thermal throttling
 
+## Automatic Startup
+
+To make the vehicle detection system start automatically when your Raspberry Pi boots:
+
+1. Run the included installation script:
+```
+chmod +x install_service.sh
+./install_service.sh
+```
+
+2. The script will create and enable a systemd service. You can choose to start it immediately or wait until the next reboot.
+
+3. To verify it's working:
+```
+sudo systemctl status vehicle-detection
+```
+
+4. To view the logs from the auto-started service:
+```
+sudo journalctl -u vehicle-detection -f
+```
+
+5. If you need to disable auto-start:
+```
+sudo systemctl disable vehicle-detection
+```
+
+### Alternative Auto-start Methods
+
+If the systemd service doesn't work for your needs, there are alternative methods:
+
+#### Using crontab:
+```
+crontab -e
+```
+Then add this line:
+```
+@reboot sleep 30 && cd /home/pi/Project/Onroad Final && ./start.sh >> /home/pi/vehicle_detection.log 2>&1
+```
+
+#### Using rc.local:
+Edit the rc.local file:
+```
+sudo nano /etc/rc.local
+```
+Add this line before the `exit 0` line:
+```
+(sleep 30 && cd /home/pi/Project/Onroad Final && ./start.sh) &
+```
+
+The 30-second sleep allows time for the system to fully boot before starting the application.
+
 ## Troubleshooting
 
 - If the camera isn't detected, ensure it's properly connected and enabled
